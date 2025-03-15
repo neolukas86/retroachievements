@@ -136,12 +136,43 @@ function stageCleared() {
 }
 
 function getMilisecStageTime(){
+//    return prior(getChronoTime()) * 10
+    return prev(getChronoTime()) * 10    
+}
+
+/*
+function getMilisecStageTime(){
     return ((byte(0x003282) - 48) * 10) + // Thenths of second (ASCII)
            ((byte(0x003280) - 48) * 100) + // Last digit of the seconds (ASCII)
            ((byte(0x003281) - 48) * 1000) // First digit of the seconds (ASCII)
 }
+*/
 
 // Variables
+
+rally_sanremo_stages = {
+    0: {
+        "name" : "Peranaldo",
+        "stage": 1,
+        "winningtitle": "Miki Biasion",
+        "winningpoints" : 1,
+    },
+    1: {
+        "name" : "Totip",
+        "stage": 2,
+        "winningtitle": "Giandomenico Basso",
+        "winningpoints" : 3,
+    },
+    2: {
+        "name" : "Ospedaletti",
+        "stage": 3,
+        "winningtitle": "Paolo Andreucci",
+        "winningpoints" : 5,
+    }
+}
+
+// TODO: Hacer lo mismo con el resto de rallies
+
 
 // Achievements - Stages
 // ---------------------
@@ -154,35 +185,18 @@ achievement(
               getStagePosition() == 0
 )
 
-achievement(
-    title = "Miki Biasion", points = 1, type="missable",
-    description = "Win Peranaldo Stage - Rally SanRemo Stage 1 [1p mode]",
-    trigger = isOnePlayerMode() && isNormalOrHigherDifficulty() &&
-              isRallySanRemoSelected() && isPlayingRallySanRemo() &&
-              getCurrentStage() == 0 &&
-              stageCleared() &&
-              getStagePosition() == 0
-)
+for st in rally_sanremo_stages {
+    achievement(
+        title = rally_sanremo_stages[st]["winningtitle"], points = rally_sanremo_stages[st]["winningpoints"], type="missable",
+        description = "Win " + rally_sanremo_stages[st]["name"] + " Stage - Rally SanRemo Stage "+ rally_sanremo_stages[st]["stage"] + " [1p mode]",
+        trigger = isOnePlayerMode() && isNormalOrHigherDifficulty() &&
+                  isRallySanRemoSelected() && isPlayingRallySanRemo() &&
+                  getCurrentStage() == st &&
+                  stageCleared() &&
+                  getStagePosition() == 0
+    )    
+}
 
-achievement(
-    title = "Giandomenico Basso", points = 3, type="missable",
-    description = "Win Totip Stage - Rally SanRemo Stage 2 [1p mode]",
-    trigger = isOnePlayerMode() && isNormalOrHigherDifficulty() &&
-              isRallySanRemoSelected() && isPlayingRallySanRemo() &&
-              getCurrentStage() == 1 &&
-              stageCleared() &&
-              getStagePosition() == 0
-)
-
-achievement(
-    title = "Paolo Andreucci", points = 5, type="missable",
-    description = "Win Ospedaletti Stage - Rally SanRemo Stage 3 [1p mode]",
-    trigger = isOnePlayerMode() && isNormalOrHigherDifficulty() &&
-              isRallySanRemoSelected() && isPlayingRallySanRemo() &&
-              getCurrentStage() == 2 &&
-              stageCleared() &&
-              getStagePosition() == 0
-)
 
 achievement(
     title = "Didier Auriol", points = 2, type="missable",
@@ -382,14 +396,29 @@ achievement(
 // ---------------------
 
 leaderboard(
-    id = 111000027, title = "Leaderboard Rally San Remo Stage 1 - Peranaldo",
+    id = 127072, title = "Leaderboard Rally San Remo Stage 1 - Peranaldo",
     description = "Leaderboard Rally San Remo Stage 1 - Peranaldo [1p mode]",
     start  = isOnePlayerMode() && isNormalOrHigherDifficulty() &&
               isRallySanRemoSelected() && isPlayingRallySanRemo() &&
               getCurrentStage() == 0 &&
-              stageCleared(),
-    cancel = repeated(10, getChronoTime() > 600) && repeated(10, getChronoTime() == 65535),
-    submit = always_true(),
+              repeated(400, getChronoTime() > prev(getChronoTime())) &&               
+              never(repeated(10, getChronoTime() > 600)),
+    cancel = getChronoTime() > 600,    
+    submit = getChronoTime() == 0,
+    value  = getMilisecStageTime(),
+    format = "MILLISECS", lower_is_better = true
+)
+
+leaderboard(
+    id = 127073, title = "Leaderboard Rally San Remo Stage 2 - Totip",
+    description = "Leaderboard Rally San Remo Stage 2 - Totip [1p mode]",
+    start  = isOnePlayerMode() && isNormalOrHigherDifficulty() &&
+              isRallySanRemoSelected() && isPlayingRallySanRemo() &&
+              getCurrentStage() == 1 &&
+              repeated(400, getChronoTime() > prev(getChronoTime())) &&               
+              never(repeated(10, getChronoTime() > 600)),
+    cancel = getChronoTime() > 600,    
+    submit = getChronoTime() == 0,
     value  = getMilisecStageTime(),
     format = "MILLISECS", lower_is_better = true
 )
