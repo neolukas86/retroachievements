@@ -488,8 +488,10 @@ for st in rally_sanremo_stages {
         start  = isOnePlayerMode() && isNormalOrHigherDifficulty() &&
                  isRallySanRemoSelected() && isPlayingRallySanRemo() &&
                   getCurrentStage() == st &&
-                  getChronoTime() == 2 && prev(getChronoTime()) == 1 &&
-                  getChronoFrame() == 0 && prev(getChronoFrame()) == 5,
+                  getChronoTime() == 5 && prev(getChronoTime()) == 4 &&
+                  repeated(4, getChronoTime() > prev(getChronoTime())) &&
+                  repeated(20, getChronoFrame() > prev(getChronoFrame())) &&
+                  never(getChronoTime() == 0xFFFF),
         cancel = getChronoTime() == 0xFFFF, // When time exceeded value 0xFFFF
         submit = repeated(400, getChronoTime() > prev(getChronoTime())) && 
                 getChronoTime() == 0 &&
@@ -509,8 +511,10 @@ for st in rally_montecarlo_stages {
         start  = isOnePlayerMode() && isNormalOrHigherDifficulty() &&
                  isRallyMonteCarloSelected() && isPlayingRallyMonteCarlo() &&
                   getCurrentStage() == st &&
-                  getChronoTime() == 2 && prev(getChronoTime()) == 1 &&
-                  getChronoFrame() == 0 && prev(getChronoFrame()) == 5,
+                  getChronoTime() == 5 && prev(getChronoTime()) == 4 &&
+                  repeated(4, getChronoTime() > prev(getChronoTime())) &&
+                  repeated(20, getChronoFrame() > prev(getChronoFrame())) &&
+                  never(getChronoTime() == 0xFFFF),
         cancel = getChronoTime() == 0xFFFF, // When time exceeded value 0xFFFF
         submit = repeated(400, getChronoTime() > prev(getChronoTime())) && 
                 getChronoTime() == 0 &&
@@ -530,8 +534,10 @@ for st in rally_acropolis_stages {
         start  = isOnePlayerMode() && isNormalOrHigherDifficulty() &&
                  isRallyAcropolisSelected() && isPlayingRallyAcropolis() &&
                   getCurrentStage() == st &&
-                  getChronoTime() == 2 && prev(getChronoTime()) == 1 &&
-                  getChronoFrame() == 0 && prev(getChronoFrame()) == 5,
+                  getChronoTime() == 5 && prev(getChronoTime()) == 4 &&
+                  repeated(4, getChronoTime() > prev(getChronoTime())) &&
+                  repeated(20, getChronoFrame() > prev(getChronoFrame())) &&
+                  never(getChronoTime() == 0xFFFF),
         cancel = getChronoTime() == 0xFFFF, // When time exceeded value 0xFFFF
         submit = repeated(400, getChronoTime() > prev(getChronoTime())) && 
                 getChronoTime() == 0 &&
@@ -551,8 +557,10 @@ for st in rally_1000lakes_stages {
         start  = isOnePlayerMode() && isNormalOrHigherDifficulty() &&
                  isRally1000LakesSelected() && isPlayingRally1000Lakes() &&
                   getCurrentStage() == st &&
-                  getChronoTime() == 2 && prev(getChronoTime()) == 1 &&
-                  getChronoFrame() == 0 && prev(getChronoFrame()) == 5,
+                  getChronoTime() == 5 && prev(getChronoTime()) == 4 &&
+                  repeated(4, getChronoTime() > prev(getChronoTime())) &&
+                  repeated(20, getChronoFrame() > prev(getChronoFrame())) &&
+                  never(getChronoTime() == 0xFFFF),
         cancel = getChronoTime() == 0xFFFF, // When time exceeded value 0xFFFF
         submit = repeated(400, getChronoTime() > prev(getChronoTime())) && 
                 getChronoTime() == 0 &&
@@ -564,14 +572,43 @@ for st in rally_1000lakes_stages {
     )
 }
 
-// Leaderboard Score Points
+// Leaderboards - Rallies
+// ---------------------
+/*
+leaderboard(
+    id = 0, 
+    title = "Rally San Remo",
+    description = "Leaderboard Rally San Remo",
+    start  = isOnePlayerMode() && isNormalOrHigherDifficulty() &&
+             isRallySanRemoSelected() && isPlayingRallySanRemo() &&
+              getCurrentStage() == 0 &&
+              getChronoTime() == 2 && prev(getChronoTime()) == 1 &&
+              getChronoFrame() == 0 && prev(getChronoFrame()) == 5,
+    cancel = getChronoTime() == 0xFFFF, // When time exceeded value 0xFFFF
+    submit = repeated(400, getChronoTime() > prev(getChronoTime())) && 
+            getChronoTime() == 0 &&
+            getChronoFrame() == 0 &&
+            prev(getChronoTime()) >= 450 && // To prevent errors
+            never(getChronoTime() == 0xFFFF),
+    value  = getCentisecStageTime(),
+    format = "MILLISECS", lower_is_better = true
+)
+*/
+
+
+// Leaderboard Score Points TODO: Meterle lo de la arrancada del stage para el start
+// ------------------------
 leaderboard(
         id = 127131, 
         title = "Total Score Points",
         description = "Total Score Points [1p mode | Only 1 credit]",
         start  = isOnePlayerMode() && isNormalOrHigherDifficulty() && getExtraCreditsUsed() == 0 &&
                 (isRallySanRemoSelected() || isRallyMonteCarloSelected() || isRallyAcropolisSelected() || isRally1000LakesSelected()) &&
-                !isGameFinished() && getScorePoints() == 0,
+                !isGameFinished() && getScorePoints() < 100 && // If the leaderboard starts after 0,5 seconds there are some points collected (5 points)
+                getChronoTime() == 5 && prev(getChronoTime()) == 4 &&
+                repeated(4, getChronoTime() > prev(getChronoTime())) &&
+                repeated(20, getChronoFrame() > prev(getChronoFrame())) &&
+                never(getChronoTime() == 0xFFFF),
         cancel = getExtraCreditsUsed() > 0,
         submit = isGameFinished(),
         value  = getScorePoints(),
