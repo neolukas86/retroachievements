@@ -1,5 +1,6 @@
 // World Rally
 // #ID = 27016
+// md5: e07e71e9d01b6aeb7622741b93a5b1fd - (Version 1.0, Checksum 0E56)
 
 // Difficulty mode (core settings) functions
 // -----------------------------------------
@@ -135,7 +136,17 @@ function isOnePlayerMode() {
 
 // Check if your game is finished (win or lose) or no started (no credits insert)
 function isGameFinished() {
-    return byte(0x003552) == 0 || byte(0x003552) == 114
+    return byte(0x003552) == 0 || byte(0x003552) == 0x72
+}
+
+function isInSelectionScreen() {
+    return (byte(0x003552) == 0x10 || byte(0x003552) == 0x52) &&
+        (!isRallySanRemoSelected() && !isRallyMonteCarloSelected() && !isRallyAcropolisSelected() && !isRally1000LakesSelected())
+}
+
+function IsInTitleScreen() {
+return byte(0x003552) == 0 &&
+        (!isRallySanRemoSelected() && !isRallyMonteCarloSelected() && !isRallyAcropolisSelected() && !isRally1000LakesSelected())    
 }
 
 
@@ -158,7 +169,7 @@ function convertChronoFrameToTime(previousFrame){
         return (prev(getChronoFrame()) * 10) / 6  
     }
     else{
-        return (getChronoFrame() * 3) / 2            
+        return (getChronoFrame() * 10) / 6            
     }
 }
 
@@ -174,131 +185,454 @@ function getCentisecStageTime(){
     return (prev(getChronoTime()) * 10) + convertChronoFrameToTime(previousFrame = true)
 }
 
-/*
-function getMilisecStageTime(){
-    return ((byte(0x003282) - 48) * 10) + // Thenths of second (ASCII)
-           ((byte(0x003280) - 48) * 100) + // Last digit of the seconds (ASCII)
-           ((byte(0x003281) - 48) * 1000) // First digit of the seconds (ASCII)
+
+// Rally ASCII Time functions
+function getRallyMinutesASCII() => low4(0x00328F)
+function getRallyFirstDigitSecondsASCII() => low4(0x003291)
+function getRallySecondDigitSecondsASCII() => low4(0x003290)
+function getRallyTenthsOfSecondASCII() => low4(0x003292)
+
+// Rally time
+function getCentisecRallyTime(){
+    return (getRallyMinutesASCII()  * 6000) +
+        (getRallyFirstDigitSecondsASCII() * 1000) +
+        (getRallySecondDigitSecondsASCII() * 100) +
+        (getRallyTenthsOfSecondASCII() * 10)
 }
-*/
 
-// Variables
 
-rally_sanremo_stages = {
+// Dictionary for all rallies and stages
+
+rallies = {
     0: {
-        "idAchievement": 506655,
-        "idLeaderboard": 127072,
-        "name" : "Peranaldo",
-        "stage": 1,
-        "winningTitle": "Miki Biasion",
-        "winningPoints" : 1,
+        "name": "Rally San Remo",
+        "leaderboard": {
+            "id": 127421,
+            "title": "Rally San Remo",
+            "description": "Leaderboard Rally San Remo [1p mode | Only 1 credit]"
+        },
+        "completed": {
+            "id": 507130,
+            "title": "Arrivederci San Remo",
+            "description": "Complete Rally San Remo, Italy [1p mode | Only 1 credit]",
+            "points": 5
+        },
+        "victory": {
+            "id": 506658,
+            "title": "Gladiator",
+            "description": "Win Rally San Remo, Italy [1p mode | Only 1 credit]",
+            "points": 10
+        },
+        "stages": {
+            0: {
+                "idAchievement": 506655,
+                "idLeaderboard": 127072,
+                "name" : "Peranaldo",
+                "stage": 1,
+                "winningTitle": "Miki Biasion",
+                "winningPoints" : 1,
+            },
+            1: {
+                "idAchievement": 506656,
+                "idLeaderboard": 127073,    
+                "name" : "Totip",
+                "stage": 2,
+                "winningTitle": "Giandomenico Basso",
+                "winningPoints" : 3,
+            },
+            2: {
+                "idAchievement": 506657,    
+                "idLeaderboard": 127097, 
+                "name" : "Ospedaletti",
+                "stage": 3,
+                "winningTitle": "Paolo Andreucci",
+                "winningPoints" : 5,
+            }
+       }
     },
     1: {
-        "idAchievement": 506656,
-        "idLeaderboard": 127073,    
-        "name" : "Totip",
-        "stage": 2,
-        "winningTitle": "Giandomenico Basso",
-        "winningPoints" : 3,
+        "name": "Rally Monte-Carlo",
+        "leaderboard": {
+            "id": 127422,
+            "title": "Rally Monte-Carlo",
+            "description": "Leaderboard Rally Monte-Carlo [1p mode | Only 1 credit]"
+        },
+        "completed": {
+            "id": 507136,
+            "title": "A walk along the Cote dAzur",
+            "description": "Complete Rally MonteCarlo, France [1p mode | Only 1 credit]",
+            "points": 5
+        },
+        "victory": {
+            "id": 507059,
+            "title": "Casino Royale",
+            "description": "Win Rally MonteCarlo, France [1p mode | Only 1 credit]",
+            "points": 10
+        },
+        "stages": {
+            0: {
+                "idAchievement": 507060,
+                "idLeaderboard": 127098,
+                "name" : "Moulinon",
+                "stage": 1,
+                "winningTitle": "Didier Auriol",
+                "winningPoints" : 2,
+            },
+            1: {
+                "idAchievement": 507061,
+                "idLeaderboard": 127099,    
+                "name" : "Sisteron",
+                "stage": 2,
+                "winningTitle": "Sebastian Ogier",
+                "winningPoints" : 3,
+            },
+            2: {
+                "idAchievement": 507062,    
+                "idLeaderboard": 127100, 
+                "name" : "Col de Turini",
+                "stage": 3,
+                "winningTitle": "Sebastian Loeb",
+                "winningPoints" : 5,
+            }
+        }
     },
     2: {
-        "idAchievement": 506657,    
-        "idLeaderboard": 127097, 
-        "name" : "Ospedaletti",
-        "stage": 3,
-        "winningTitle": "Paolo Andreucci",
-        "winningPoints" : 5,
-    }
+        "name": "Rally Acropolis",
+        "leaderboard": {
+            "id": 127423,
+            "title": "Rally Acropolis",
+            "description": "Leaderboard Rally Acropolis [1p mode | Only 1 credit]"
+        },
+        "completed": {
+            "id": 507131,
+            "title": "Olympic Games",
+            "description": "Complete Rally Acropolis, Greece [1p mode | Only 1 credit]",
+            "points": 5
+        },
+        "victory": {
+            "id": 507132,
+            "title": "Greek God",
+            "description": "Win Rally Acropolis, Greece [1p mode | Only 1 credit]",
+            "points": 10
+        },
+        "stages": {
+            0: {
+                "idAchievement": 507123,
+                "idLeaderboard": 127101,
+                "name" : "Tarzan",
+                "stage": 1,
+                "winningTitle": "George Moschous",
+                "winningPoints" : 2,
+            },
+            1: {
+                "idAchievement": 507124,
+                "idLeaderboard": 127102,    
+                "name" : "Vari",
+                "stage": 2,
+                "winningTitle": "Anastasios Markouizos",
+                "winningPoints" : 3,
+            },
+            2: {
+                "idAchievement": 507125,    
+                "idLeaderboard": 127103, 
+                "name" : "Kinetta",
+                "stage": 3,
+                "winningTitle": "Tassos Livieratos",
+                "winningPoints" : 5,
+            }
+        }
+    },
+    3: {
+        "name": "Rally of the 1000 Lakes",
+        "leaderboard": {
+            "id": 127424,
+            "title": "Rally of the 1000 Lakes",
+            "description": "Leaderboard Rally of the 1000 Lakes [1p mode | Only 1 credit]"
+        },
+        "completed": {
+            "id": 507137,
+            "title": "Let it go, Let it go...",
+            "description": "Complete Rally of the 1000 Lakes, Finland [1p mode | Only 1 credit]",
+            "points": 5
+        },
+        "victory": {
+            "id": 507133,
+            "title": "King in the North",
+            "description": "Win Rally 1000 Lakes, Finland [1p mode | Only 1 credit]",
+            "points": 10
+        },
+        "stages": {
+            0: {
+                "idAchievement": 507126,
+                "idLeaderboard": 127104,
+                "name" : "Myhipaa",
+                "stage": 1,
+                "winningTitle": "Marcus Gronholm",
+                "winningPoints" : 2,
+            },
+            1: {
+                "idAchievement": 507127,
+                "idLeaderboard": 127105,    
+                "name" : "Konivuori",
+                "stage": 2,
+                "winningTitle": "Juha Kankkunen",
+                "winningPoints" : 3,
+            },
+            2: {
+                "idAchievement": 507128,    
+                "idLeaderboard": 127106, 
+                "name" : "Laajavuori",
+                "stage": 3,
+                "winningTitle": "Tommi Makinen",
+                "winningPoints" : 5,
+            }
+        }
+    },
 }
 
-rally_montecarlo_stages = {
-    0: {
-        "idAchievement": 507060,
-        "idLeaderboard": 127098,
-        "name" : "Moulinon",
-        "stage": 1,
-        "winningTitle": "Didier Auriol",
-        "winningPoints" : 2,
-    },
-    1: {
-        "idAchievement": 507061,
-        "idLeaderboard": 127099,    
-        "name" : "Sisteron",
-        "stage": 2,
-        "winningTitle": "Sebastian Ogier",
-        "winningPoints" : 3,
-    },
-    2: {
-        "idAchievement": 507062,    
-        "idLeaderboard": 127100, 
-        "name" : "Col de Turini",
-        "stage": 3,
-        "winningTitle": "Sebastian Loeb",
-        "winningPoints" : 5,
-    }
+// Lookups for Rich presence
+// -------------------------
+ralliesLookup = {
+    0: "Rally San Remo",
+    1: "Rally Monte-Carlo",
+    2: "Rally Acropolis",
+    3: "Rally of the 1000 Lakes"
 }
 
-rally_acropolis_stages = {
-    0: {
-        "idAchievement": 0,
-        "idLeaderboard": 127101,
-        "name" : "Tarzan",
-        "stage": 1,
-        "winningTitle": "George Moschous",
-        "winningPoints" : 2,
-    },
-    1: {
-        "idAchievement": 0,
-        "idLeaderboard": 127102,    
-        "name" : "Vari",
-        "stage": 2,
-        "winningTitle": "Anastasios Markouizos",
-        "winningPoints" : 3,
-    },
-    2: {
-        "idAchievement": 0,    
-        "idLeaderboard": 127103, 
-        "name" : "Kinetta",
-        "stage": 3,
-        "winningTitle": "Tassos Livieratos",
-        "winningPoints" : 5,
-    }
+stagesSanRemoLookup = {
+    0: "Peranaldo",
+    1: "Totip",
+    2: "Ospedaletti"
 }
 
-rally_1000lakes_stages = {
-    0: {
-        "idAchievement": 0,
-        "idLeaderboard": 127104,
-        "name" : "Myhipaa",
-        "stage": 1,
-        "winningTitle": "Marcus Gronholm",
-        "winningPoints" : 2,
-    },
-    1: {
-        "idAchievement": 0,
-        "idLeaderboard": 127105,    
-        "name" : "Konivuori",
-        "stage": 2,
-        "winningTitle": "Juha Kankkunen",
-        "winningPoints" : 3,
-    },
-    2: {
-        "idAchievement": 0,    
-        "idLeaderboard": 127106, 
-        "name" : "Laajavuori",
-        "stage": 3,
-        "winningTitle": "Tommi Makinen",
-        "winningPoints" : 5,
-    }
+stagesMonteCarloLookup = {
+    0: "Moulinon",
+    1: "Sisteron",
+    2: "Col de Turini"
 }
 
-// TODO: Hacer lo mismo con el resto de rallies
+stagesAcropolisLookup = {
+    0: "Tarzan",
+    1: "Vari",
+    2: "Kinetta"
+}
+
+stages1000LakesLookup = {
+    0: "Myhipaa",
+    1: "Konivuori",
+    2: "Laajavuori"
+}
+
+
+
+
+// Achievement functions
+// ---------------------
+
+// Achievement function for completed rallies
+function setAchievementCompleteRally(rallyId){
+    trigger = isOnePlayerMode() && isNormalOrHigherDifficulty() && getExtraCreditsUsed() == 0 &&
+              getWorldChampionshipPoints() != 0xFF &&
+              getTotalRalliesCompleted() > 0
+              
+    if(rallyId == 0){
+        trigger = trigger && isRallySanRemoSelected() && getRallySanRemoPoints() != 0xFF
+    }
+    else if (rallyId == 1){
+        trigger = trigger && isRallyMonteCarloSelected() && getRallyMonteCarloPoints() != 0xFF
+    }
+    else if (rallyId == 2){
+        trigger = trigger && isRallyAcropolisSelected() && getRallyAcropolisPoints() != 0xFF
+    }
+    else if (rallyId == 3){
+        trigger = trigger && isRally1000LakesSelected() && getRally1000LakesPoints() != 0xFF
+    }
+    else {}
+    
+    achievement(id = rallies[rallyId]["completed"]["id"], 
+                title = rallies[rallyId]["completed"]["title"],
+                points = rallies[rallyId]["completed"]["points"],
+                type="progression",
+                description = rallies[rallyId]["completed"]["description"],
+                trigger = trigger)
+}
+
+// Achievement function for victory in rallies
+function setAchievementVictoryRally(rallyId){
+    trigger = isOnePlayerMode() && isNormalOrHigherDifficulty() && getExtraCreditsUsed() == 0 &&
+              getWorldChampionshipPoints() >= 20 &&
+              getTotalRalliesCompleted() > 0
+              
+    if(rallyId == 0){
+        trigger = trigger && isRallySanRemoSelected() && getRallySanRemoPoints() == 20
+    }
+    else if (rallyId == 1){
+        trigger = trigger && isRallyMonteCarloSelected() && getRallyMonteCarloPoints() == 20
+    }
+    else if (rallyId == 2){
+        trigger = trigger && isRallyAcropolisSelected() && getRallyAcropolisPoints() == 20
+    }
+    else if (rallyId == 3){
+        trigger = trigger && isRally1000LakesSelected() && getRally1000LakesPoints() == 20
+    }
+    else {}
+    
+    achievement(id = rallies[rallyId]["victory"]["id"], 
+                title = rallies[rallyId]["victory"]["title"],
+                points = rallies[rallyId]["victory"]["points"],
+                type= "missable",
+                description = rallies[rallyId]["victory"]["description"],
+                trigger = trigger)
+}
+
+
+// Achievement function for victory in rally stages
+function setAchievementVictoryStage(rallyId, stage){
+    id = rallies[rallyId]["stages"][stage]["idAchievement"]
+    title = rallies[rallyId]["stages"][stage]["winningTitle"]
+    points = rallies[rallyId]["stages"][stage]["winningPoints"]
+    type = "missable"
+    description = format("Win {0} Stage - {1} Stage {2} [1p mode]", 
+            rallies[rallyId]["stages"][stage]["name"], 
+            rallies[rallyId]["name"],
+            rallies[rallyId]["stages"][stage]["stage"])
+    trigger = isOnePlayerMode() && isNormalOrHigherDifficulty() &&
+                  getCurrentStage() == stage &&
+                  stageCleared() &&
+                  getStagePosition() == 0
+                  
+    if(rallyId == 0){
+        trigger = trigger && isRallySanRemoSelected() && isPlayingRallySanRemo()
+    }
+    else if (rallyId == 1){
+        trigger = trigger && isRallyMonteCarloSelected() && isPlayingRallyMonteCarlo()
+    }
+    else if (rallyId == 2){
+        trigger = trigger && isRallyAcropolisSelected() && isPlayingRallyAcropolis()
+    }
+    else if (rallyId == 3){
+        trigger = trigger && isRally1000LakesSelected() && isPlayingRally1000Lakes()
+    }
+    else {}
+    
+    achievement(id=id, title=title, points=points, type=type, description=description, trigger=trigger)
+}
+
+// Achievement function for game completed
+function setGameCompletedAchievement(id, title, points, type, description, isPositionRequired, positionReq, extraCredits){
+    trigger = isOnePlayerMode() && isNormalOrHigherDifficulty() && getExtraCreditsUsed() == extraCredits &&
+              isRallySanRemoSelected() && isRallyMonteCarloSelected() && isRallyAcropolisSelected() && isRally1000LakesSelected() &&
+              getRallySanRemoPoints() != 0xFF && getRallyMonteCarloPoints() != 0xFF && getRallyAcropolisPoints() != 0xFF && getRally1000LakesPoints() != 0xFF &&
+              getWorldChampionshipPoints() != 0xFF &&
+              getTotalRalliesCompleted() == 10
+              
+     if(isPositionRequired){
+         trigger = trigger && getWorldChampionshipPosition() <= positionReq
+     }
+     
+     achievement(id=id, title=title, points=points, type=type, description=description, trigger=trigger)
+}
+
+// Leaderboard functions
+// ---------------------
+
+// Rally leaderboard
+function setRallyLeaderboard(rallyId){
+    start = isOnePlayerMode() && isNormalOrHigherDifficulty() && getExtraCreditsUsed() == 0 &&
+              getCurrentStage() == 0 &&
+              getChronoTime() == 2 && prev(getChronoTime()) == 1 &&
+              getChronoFrame() == 0 && prev(getChronoFrame()) == 5
+              
+    cancel = getExtraCreditsUsed() > 0 || isGameFinished()
+    
+    if(rallyId == 0){
+        start = start && isRallySanRemoSelected() && isPlayingRallySanRemo()
+        cancel = cancel || !isPlayingRallySanRemo()
+    }
+    else if (rallyId == 1){
+        start = start && isRallyMonteCarloSelected() && isPlayingRallyMonteCarlo()
+        cancel = cancel || !isPlayingRallyMonteCarlo()
+    }
+    else if (rallyId == 2){
+        start = start && isRallyAcropolisSelected() && isPlayingRallyAcropolis()
+        cancel = cancel || !isPlayingRallyAcropolis()
+    }
+    else if (rallyId == 3){
+        start = start && isRally1000LakesSelected() && isPlayingRally1000Lakes()
+        cancel = cancel || !isPlayingRally1000Lakes()
+    }
+    else {}
+    
+    leaderboard(id = rallies[rallyId]["leaderboard"]["id"],
+                title = rallies[rallyId]["leaderboard"]["title"],
+                description = rallies[rallyId]["leaderboard"]["description"],
+                start = start,
+                cancel = cancel,
+                submit = getCurrentStage() == 2 && (prev(getCentisecRallyTime()) < getCentisecRallyTime()),
+                value  = getCentisecRallyTime(),
+                format = "MILLISECS", 
+                lower_is_better = true                
+    )
+}
+
+// Stage leaderboard
+function setStageLeaderboard(rallyId, stage){
+    id = rallies[rallyId]["stages"][stage]["idLeaderboard"]
+    title = format("{0} Stage {1} - {2}", 
+            rallies[rallyId]["name"],
+            rallies[rallyId]["stages"][stage]["stage"],             
+            rallies[rallyId]["stages"][stage]["name"])
+    description = format("Leaderboard {0} Stage {1} - {2} [1p mode]", 
+            rallies[rallyId]["name"],
+            rallies[rallyId]["stages"][stage]["stage"],             
+            rallies[rallyId]["stages"][stage]["name"])
+    start  = isOnePlayerMode() && isNormalOrHigherDifficulty() &&
+                  getCurrentStage() == stage &&
+                  getChronoTime() == 5 && prev(getChronoTime()) == 4 &&
+                  repeated(4, getChronoTime() > prev(getChronoTime())) &&
+                  repeated(20, getChronoFrame() > prev(getChronoFrame())) &&
+                  never(getChronoTime() == 0xFFFF)
+                  
+    cancel = getChronoTime() == 0xFFFF && prev(getChronoTime() == 600) // When time exceeded value goes from 600 to 0xFFFF
+    submit = repeated(400, getChronoTime() > prev(getChronoTime())) && 
+            getChronoTime() == 0 &&
+            getChronoFrame() == 0 &&
+            prev(getChronoTime()) >= 450 && // To prevent errors
+            getScorePoints() > prior(getScorePoints()) + 10 && // During the Chrono the points only increase max 9 (according to the current speed) in a frame, when finish the stage increase a lot more
+            never(getChronoTime() == 0xFFFF)
+    value  = getCentisecStageTime()
+    
+    
+    if(rallyId == 0){
+        start = start && isRallySanRemoSelected() && isPlayingRallySanRemo()
+        cancel = cancel || !isPlayingRallySanRemo()
+    }
+    else if (rallyId == 1){
+        start = start && isRallyMonteCarloSelected() && isPlayingRallyMonteCarlo()
+        cancel = cancel || !isPlayingRallyMonteCarlo()
+    }
+    else if (rallyId == 2){
+        start = start && isRallyAcropolisSelected() && isPlayingRallyAcropolis()
+        cancel = cancel || !isPlayingRallyAcropolis()
+    }
+    else if (rallyId == 3){
+        start = start && isRally1000LakesSelected() && isPlayingRally1000Lakes()
+        cancel = cancel || !isPlayingRally1000Lakes()
+    }
+    else {}
+    
+ 
+    leaderboard(id=id, title=title, description=description, start=start, cancel=cancel, submit=submit, value=value, format = "MILLISECS", lower_is_better = true)   
+}
+
 
 
 // Achievements - Stages
 // ---------------------
 
+// Win any stage
 achievement(
+    id = 507129,
     title = "Fast and Furious", points = 1, type="missable",
     description = "Win a rally stage [1p mode]",
     trigger = isOnePlayerMode() && isNormalOrHigherDifficulty() &&
@@ -306,297 +640,66 @@ achievement(
               getStagePosition() == 0
 )
 
-for st in rally_sanremo_stages {
-    achievement(
-        id = rally_sanremo_stages[st]["idAchievement"],
-        title = rally_sanremo_stages[st]["winningTitle"], points = rally_sanremo_stages[st]["winningPoints"], type="missable",
-        description = format("Win {0} Stage - Rally SanRemo Stage {1} [1p mode]", 
-            rally_sanremo_stages[st]["name"], rally_sanremo_stages[st]["stage"]),
-        trigger = isOnePlayerMode() && isNormalOrHigherDifficulty() &&
-                  isRallySanRemoSelected() && isPlayingRallySanRemo() &&
-                  getCurrentStage() == st &&
-                  stageCleared() &&
-                  getStagePosition() == 0
-    )    
+// Achievement every stage
+for ral in rallies {
+    for st in rallies[ral]["stages"]{
+        setAchievementVictoryStage(ral, st)
+    }
 }
-
-for st in rally_montecarlo_stages {
-    achievement(
-        id = rally_montecarlo_stages[st]["idAchievement"],    
-        title = rally_montecarlo_stages[st]["winningTitle"], points = rally_montecarlo_stages[st]["winningPoints"], type="missable",
-        description = format("Win {0} Stage - Rally Monte-Carlo Stage {1} [1p mode]", 
-            rally_montecarlo_stages[st]["name"], rally_montecarlo_stages[st]["stage"]),
-        trigger = isOnePlayerMode() && isNormalOrHigherDifficulty() &&
-                  isRallyMonteCarloSelected() && isPlayingRallyMonteCarlo() &&
-                  getCurrentStage() == st &&
-                  stageCleared() &&
-                  getStagePosition() == 0
-    )    
-}
-
-for st in rally_acropolis_stages {
-    achievement(
-        id = rally_acropolis_stages[st]["idAchievement"],    
-        title = rally_acropolis_stages[st]["winningTitle"], points = rally_acropolis_stages[st]["winningPoints"], type="missable",
-        description = format("Win {0} Stage - Rally Acropolis Stage {1} [1p mode]", 
-            rally_acropolis_stages[st]["name"], rally_acropolis_stages[st]["stage"]),
-        trigger = isOnePlayerMode() && isNormalOrHigherDifficulty() &&
-                  isRallyAcropolisSelected() && isPlayingRallyAcropolis() &&
-                  getCurrentStage() == st &&
-                  stageCleared() &&
-                  getStagePosition() == 0
-    )    
-}
-
-for st in rally_1000lakes_stages {
-    achievement(
-        id = rally_1000lakes_stages[st]["idAchievement"],    
-        title = rally_1000lakes_stages[st]["winningTitle"], points = rally_1000lakes_stages[st]["winningPoints"], type="missable",
-        description = format("Win {0} Stage - Rally of the 1000 Lakes Stage {1} [1p mode]", 
-            rally_1000lakes_stages[st]["name"], rally_1000lakes_stages[st]["stage"]),
-        trigger = isOnePlayerMode() && isNormalOrHigherDifficulty() &&
-                  isRally1000LakesSelected() && isPlayingRally1000Lakes() &&
-                  getCurrentStage() == st &&
-                  stageCleared() &&
-                  getStagePosition() == 0
-    )    
-}
-
 
 
 // Achievements - Rallies Completed
 // --------------------------------
 
-achievement(
-    id = 0,
-    title = "Arrivederci San Remo", points = 5, type="progression",
-    description = "Complete Rally San Remo, Italy [1p mode | Only 1 credit]",
-    trigger = isOnePlayerMode() && isNormalOrHigherDifficulty() && getExtraCreditsUsed() == 0 &&
-              isRallySanRemoSelected() && getRallySanRemoPoints() != 0xFF &&
-              getWorldChampionshipPoints() != 0xFF &&
-              getTotalRalliesCompleted() > 0
-)
+for raId in rallies {
+    setAchievementCompleteRally(raId)
+}
 
-achievement(
-    id = 0,
-    title = "A walk along the Cote dAzur", points = 5, type="progression",
-    description = "Complete Rally MonteCarlo, France [1p mode | Only 1 credit]",
-    trigger = isOnePlayerMode() && isNormalOrHigherDifficulty() && getExtraCreditsUsed() == 0 &&
-              isRallyMonteCarloSelected() && getRallyMonteCarloPoints() != 0xFF &&
-              getWorldChampionshipPoints() != 0xFF &&
-              getTotalRalliesCompleted() > 0
-)
-
-achievement(
-    id = 0,
-    title = "Olympic Games", points = 5, type="progression",
-    description = "Complete Rally Acropolis, Greece [1p mode | Only 1 credit]",
-    trigger = isOnePlayerMode() && isNormalOrHigherDifficulty() && getExtraCreditsUsed() == 0 &&
-              isRallyAcropolisSelected() && getRallyAcropolisPoints() != 0xFF &&
-              getWorldChampionshipPoints() != 0xFF &&
-              getTotalRalliesCompleted() > 0
-)
-
-achievement(
-    id = 0,
-    title = "Let it go, Let it go...", points = 5, type="progression",
-    description = "Complete Rally of the 1000 Lakes, Finland [1p mode | Only 1 credit]",
-    trigger = isOnePlayerMode() && isNormalOrHigherDifficulty() && getExtraCreditsUsed() == 0 &&
-              isRally1000LakesSelected() && getRally1000LakesPoints() != 0xFF &&
-              getWorldChampionshipPoints() != 0xFF &&
-              getTotalRalliesCompleted() > 0
-)
 
 // Achievements - Rallies Won
 // --------------------------
+for raId in rallies {
+    setAchievementVictoryRally(raId)
+}
 
-achievement(
-    id = 506658,
-    title = "Gladiator", points = 10, type="missable",
-    description = "Win Rally San Remo, Italy [1p mode | Only 1 credit]",
-    trigger = isOnePlayerMode() && isNormalOrHigherDifficulty() && getExtraCreditsUsed() == 0 &&
-              isRallySanRemoSelected() && getRallySanRemoPoints() == 20 &&
-              getWorldChampionshipPoints() >= 20 &&
-              getTotalRalliesCompleted() > 0
-)
-
-achievement(
-    id = 507060,
-    title = "Casino Royale", points = 10, type="missable",
-    description = "Win Rally MonteCarlo, France [1p mode | Only 1 credit]",
-    trigger = isOnePlayerMode() && isNormalOrHigherDifficulty() && getExtraCreditsUsed() == 0 &&
-              isRallyMonteCarloSelected() && getRallyMonteCarloPoints() == 20 &&
-              getWorldChampionshipPoints() >= 20 &&
-              getTotalRalliesCompleted() > 0
-)
-
-achievement(
-    id = 0,
-    title = "Greek God", points = 10, type="missable",
-    description = "Win Rally Acropolis, Greece [1p mode | Only 1 credit]",
-    trigger = isOnePlayerMode() && isNormalOrHigherDifficulty() && getExtraCreditsUsed() == 0 &&
-              isRallyAcropolisSelected() && getRallyAcropolisPoints() == 20 &&
-              getWorldChampionshipPoints() >= 20 &&
-              getTotalRalliesCompleted() > 0
-)
-
-achievement(
-    id = 0,
-    title = "King in the North", points = 10, type="missable",
-    description = "Win Rally 1000 Lakes, Finland [1p mode | Only 1 credit]",
-    trigger = isOnePlayerMode() && isNormalOrHigherDifficulty() && getExtraCreditsUsed() == 0 &&
-              isRally1000LakesSelected() && getRally1000LakesPoints() == 20 &&
-              getWorldChampionshipPoints() >= 20 &&
-              getTotalRalliesCompleted() > 0
-)
 
 // Achievements - Game Completed
 // -----------------------------
-
-achievement(
-    id = 0,
+setGameCompletedAchievement(id = 507134,
     title = "The job is done", points = 25, type="win_condition",
     description = "Complete the game [1p mode | Only 1 credit]",
-    trigger = isOnePlayerMode() && isNormalOrHigherDifficulty() && getExtraCreditsUsed() == 0 &&
-              isRallySanRemoSelected() && isRallyMonteCarloSelected() && isRallyAcropolisSelected() && isRally1000LakesSelected() &&
-              getRallySanRemoPoints() != 0xFF && getRallyMonteCarloPoints() != 0xFF && getRallyAcropolisPoints() != 0xFF && getRally1000LakesPoints() != 0xFF &&
-              getWorldChampionshipPoints() != 0xFF &&
-              getTotalRalliesCompleted() == 10
-)
-
-achievement(
-    id = 0,
+    isPositionRequired = false, positionReq = 0, extraCredits = 0)
+    
+setGameCompletedAchievement(id = 507138,
+    title = "Touching the glory", points = 50, type="missable",
+    description = "Finish in third position, or better, in the World Championship [1p mode | Only 1 credit]",
+    isPositionRequired = true, positionReq = 2, extraCredits = 0)
+    
+setGameCompletedAchievement(id = 507135,
     title = "Carlos Sainz", points = 50, type="missable",
-    description = "Win the World Championship [1p mode | Only 1 credit]",
-    trigger = isOnePlayerMode() && isNormalOrHigherDifficulty() && getExtraCreditsUsed() == 0 &&
-              isRallySanRemoSelected() && isRallyMonteCarloSelected() && isRallyAcropolisSelected() && isRally1000LakesSelected() &&
-              getRallySanRemoPoints() != 0xFF && getRallyMonteCarloPoints() != 0xFF && getRallyAcropolisPoints() != 0xFF && getRally1000LakesPoints() != 0xFF &&
-              getWorldChampionshipPoints() != 0xFF &&
-              getTotalRalliesCompleted() == 10 &&
-              getWorldChampionshipPosition() == 0
-)
-
+    description = "Win the World Championship [1p mode | Max 3 credits]",
+    isPositionRequired = true, positionReq = 0, extraCredits = 2)    
+    
 
 // Leaderboards - Stages
 // ---------------------
 
-for st in rally_sanremo_stages {
-    leaderboard(
-        id = rally_sanremo_stages[st]["idLeaderboard"], 
-        title = format("Rally San Remo Stage {0} - {1}", rally_sanremo_stages[st]["stage"], rally_sanremo_stages[st]["name"]),
-        description = format("Leaderboard Rally San Remo Stage {0} - {1} [1p mode]", rally_sanremo_stages[st]["stage"], rally_sanremo_stages[st]["name"]),
-        start  = isOnePlayerMode() && isNormalOrHigherDifficulty() &&
-                 isRallySanRemoSelected() && isPlayingRallySanRemo() &&
-                  getCurrentStage() == st &&
-                  getChronoTime() == 5 && prev(getChronoTime()) == 4 &&
-                  repeated(4, getChronoTime() > prev(getChronoTime())) &&
-                  repeated(20, getChronoFrame() > prev(getChronoFrame())) &&
-                  never(getChronoTime() == 0xFFFF),
-        cancel = getChronoTime() == 0xFFFF, // When time exceeded value 0xFFFF
-        submit = repeated(400, getChronoTime() > prev(getChronoTime())) && 
-                getChronoTime() == 0 &&
-                getChronoFrame() == 0 &&
-                prev(getChronoTime()) >= 450 && // To prevent errors
-                never(getChronoTime() == 0xFFFF),
-        value  = getCentisecStageTime(),
-        format = "MILLISECS", lower_is_better = true
-    )
+for ral in rallies {
+    for st in rallies[ral]["stages"]{
+        setStageLeaderboard(ral, st)
+    }
 }
 
-for st in rally_montecarlo_stages {
-    leaderboard(
-        id = rally_montecarlo_stages[st]["idLeaderboard"], 
-        title = format("Rally Monte-Carlo Stage {0} - {1}", rally_montecarlo_stages[st]["stage"], rally_montecarlo_stages[st]["name"]),
-        description = format("Leaderboard Rally Monte-Carlo Stage {0} - {1} [1p mode]", rally_montecarlo_stages[st]["stage"], rally_montecarlo_stages[st]["name"]),
-        start  = isOnePlayerMode() && isNormalOrHigherDifficulty() &&
-                 isRallyMonteCarloSelected() && isPlayingRallyMonteCarlo() &&
-                  getCurrentStage() == st &&
-                  getChronoTime() == 5 && prev(getChronoTime()) == 4 &&
-                  repeated(4, getChronoTime() > prev(getChronoTime())) &&
-                  repeated(20, getChronoFrame() > prev(getChronoFrame())) &&
-                  never(getChronoTime() == 0xFFFF),
-        cancel = getChronoTime() == 0xFFFF, // When time exceeded value 0xFFFF
-        submit = repeated(400, getChronoTime() > prev(getChronoTime())) && 
-                getChronoTime() == 0 &&
-                getChronoFrame() == 0 &&
-                prev(getChronoTime()) >= 450 && // To prevent errors
-                never(getChronoTime() == 0xFFFF),
-        value  = getCentisecStageTime(),
-        format = "MILLISECS", lower_is_better = true
-    )
-}
-
-for st in rally_acropolis_stages {
-    leaderboard(
-        id = rally_acropolis_stages[st]["idLeaderboard"], 
-        title = format("Rally Acropolis Stage {0} - {1}", rally_acropolis_stages[st]["stage"], rally_acropolis_stages[st]["name"]),
-        description = format("Leaderboard Rally Acropolis Stage {0} - {1} [1p mode]", rally_acropolis_stages[st]["stage"], rally_acropolis_stages[st]["name"]),
-        start  = isOnePlayerMode() && isNormalOrHigherDifficulty() &&
-                 isRallyAcropolisSelected() && isPlayingRallyAcropolis() &&
-                  getCurrentStage() == st &&
-                  getChronoTime() == 5 && prev(getChronoTime()) == 4 &&
-                  repeated(4, getChronoTime() > prev(getChronoTime())) &&
-                  repeated(20, getChronoFrame() > prev(getChronoFrame())) &&
-                  never(getChronoTime() == 0xFFFF),
-        cancel = getChronoTime() == 0xFFFF, // When time exceeded value 0xFFFF
-        submit = repeated(400, getChronoTime() > prev(getChronoTime())) && 
-                getChronoTime() == 0 &&
-                getChronoFrame() == 0 &&
-                prev(getChronoTime()) >= 450 && // To prevent errors
-                never(getChronoTime() == 0xFFFF),
-        value  = getCentisecStageTime(),
-        format = "MILLISECS", lower_is_better = true
-    )
-}
-
-for st in rally_1000lakes_stages {
-    leaderboard(
-        id = rally_1000lakes_stages[st]["idLeaderboard"], 
-        title = format("Rally of the 1000 Lakes Stage {0} - {1}", rally_1000lakes_stages[st]["stage"], rally_1000lakes_stages[st]["name"]),
-        description = format("Leaderboard Rally of the 1000 Lakes Stage {0} - {1} [1p mode]", rally_1000lakes_stages[st]["stage"], rally_1000lakes_stages[st]["name"]),
-        start  = isOnePlayerMode() && isNormalOrHigherDifficulty() &&
-                 isRally1000LakesSelected() && isPlayingRally1000Lakes() &&
-                  getCurrentStage() == st &&
-                  getChronoTime() == 5 && prev(getChronoTime()) == 4 &&
-                  repeated(4, getChronoTime() > prev(getChronoTime())) &&
-                  repeated(20, getChronoFrame() > prev(getChronoFrame())) &&
-                  never(getChronoTime() == 0xFFFF),
-        cancel = getChronoTime() == 0xFFFF, // When time exceeded value 0xFFFF
-        submit = repeated(400, getChronoTime() > prev(getChronoTime())) && 
-                getChronoTime() == 0 &&
-                getChronoFrame() == 0 &&
-                prev(getChronoTime()) >= 450 && // To prevent errors
-                never(getChronoTime() == 0xFFFF),
-        value  = getCentisecStageTime(),
-        format = "MILLISECS", lower_is_better = true
-    )
-}
 
 // Leaderboards - Rallies
 // ---------------------
-/*
-leaderboard(
-    id = 0, 
-    title = "Rally San Remo",
-    description = "Leaderboard Rally San Remo",
-    start  = isOnePlayerMode() && isNormalOrHigherDifficulty() &&
-             isRallySanRemoSelected() && isPlayingRallySanRemo() &&
-              getCurrentStage() == 0 &&
-              getChronoTime() == 2 && prev(getChronoTime()) == 1 &&
-              getChronoFrame() == 0 && prev(getChronoFrame()) == 5,
-    cancel = getChronoTime() == 0xFFFF, // When time exceeded value 0xFFFF
-    submit = repeated(400, getChronoTime() > prev(getChronoTime())) && 
-            getChronoTime() == 0 &&
-            getChronoFrame() == 0 &&
-            prev(getChronoTime()) >= 450 && // To prevent errors
-            never(getChronoTime() == 0xFFFF),
-    value  = getCentisecStageTime(),
-    format = "MILLISECS", lower_is_better = true
-)
-*/
+
+for raId in rallies{
+    setRallyLeaderboard(raId)    
+}
 
 
-// Leaderboard Score Points TODO: Meterle lo de la arrancada del stage para el start
+// Leaderboard Score Points
 // ------------------------
 leaderboard(
         id = 127131, 
@@ -615,4 +718,61 @@ leaderboard(
         format = "POINTS", lower_is_better = false
     )
 
+
+// Rich Presence
+// -------------
+
+rich_presence_conditional_display(IsInTitleScreen(), "In title screen")
+rich_presence_conditional_display(isInSelectionScreen(), "In Rally selection screen")
+rich_presence_conditional_display(isGameFinished() && getWorldChampionshipPosition() == 0, "Game finished, 🥇 World Championship,💰:{0}, 🔁 {1}",
+                        rich_presence_value("Points", getScorePoints()),
+                        rich_presence_value("Continues", getExtraCreditsUsed())
+)
+rich_presence_conditional_display(isGameFinished() && getWorldChampionshipPosition() == 1, "Game finished, 🥈 World Championship,💰:{0}, 🔁 {1}",
+                        rich_presence_value("Points", getScorePoints()),
+                        rich_presence_value("Continues", getExtraCreditsUsed())
+)
+rich_presence_conditional_display(isGameFinished() && getWorldChampionshipPosition() == 2, "Game finished, 🥉 World Championship,💰:{0}, 🔁 {1}",
+                        rich_presence_value("Points", getScorePoints()),
+                        rich_presence_value("Continues", getExtraCreditsUsed())
+)
+rich_presence_conditional_display(isGameFinished(), "Game finished, 🏅{0} World Championship, 💰:{1}, 🔁 {2}",
+                        rich_presence_value("Position", getWorldChampionshipPosition() + 1),
+                        rich_presence_value("Points", getScorePoints()),
+                        rich_presence_value("Continues", getExtraCreditsUsed())
+)
+                          
+
+
+rich_presence_conditional_display(getCurrentRally() == 0, "Playing {0}, {1}, 🚩:{2}, 🔁:{3}, 💰:{4}",
+                        rich_presence_lookup("Rally", getCurrentRally(), ralliesLookup),
+                        rich_presence_lookup("StageSanRemo", getCurrentStage(), stagesSanRemoLookup),
+                        rich_presence_value("StageNumber", getCurrentStage() + 1),
+                        rich_presence_value("Continues", getExtraCreditsUsed()),
+                        rich_presence_value("Points", getScorePoints())                        
+)
+                                  
+rich_presence_conditional_display(getCurrentRally() == 1, "Playing {0}, {1}, 🚩:{2}, 🔁:{3}, 💰:{4}",
+                        rich_presence_lookup("Rally", getCurrentRally(), ralliesLookup),
+                        rich_presence_lookup("StageMonteCarlo", getCurrentStage(), stagesMonteCarloLookup),
+                        rich_presence_value("StageNumber", getCurrentStage() + 1),
+                        rich_presence_value("Continues", getExtraCreditsUsed()),
+                        rich_presence_value("Points", getScorePoints()) 
+)
+
+rich_presence_conditional_display(getCurrentRally() == 2, "Playing {0}, {1}, 🚩:{2}, 🔁:{3}, 💰:{4}",
+                        rich_presence_lookup("Rally", getCurrentRally(), ralliesLookup),
+                        rich_presence_lookup("StageAcropolis", getCurrentStage(), stagesAcropolisLookup),
+                        rich_presence_value("StageNumber", getCurrentStage() + 1),
+                        rich_presence_value("Continues", getExtraCreditsUsed()),
+                        rich_presence_value("Points", getScorePoints()) 
+)
+
+rich_presence_display("Playing {0}, {1}, 🚩:{2}, 🔁:{3}, 💰:{4}",
+                        rich_presence_lookup("Rally", getCurrentRally(), ralliesLookup),
+                        rich_presence_lookup("Stage1000Lakes", getCurrentStage(), stages1000LakesLookup),
+                        rich_presence_value("StageNumber", getCurrentStage() + 1),
+                        rich_presence_value("Continues", getExtraCreditsUsed()),
+                        rich_presence_value("Points", getScorePoints()) 
+)
 
