@@ -83,6 +83,12 @@ function isPlayingRally1000Lakes() {
 // Get current stage
 function getCurrentStage() => byte(0x00337A)
 
+// Get stage status
+// 0x00 = Running
+// 0x02 = Exact moment/frame of stage end
+// 0x01 = Stage cleared
+function getStatusStage() => byte(0x0001c6)
+
 // Rally position functions
 // ------------------------
 function getStagePosition() => byte(0x00345C)
@@ -126,6 +132,7 @@ function isOnePlayerMode() {
     return byte(0x00354E) == 1 && byte(0x0033AC) == 1
 }
 
+function getGameStatus() => byte(0x003552)
 
 // 0x00 = No credit is inserted yet
 // 0x10 (16) = In the player selection screen, when you have more than 1 credit (not at the very start of the game/rom)
@@ -136,11 +143,11 @@ function isOnePlayerMode() {
 
 // Check if your game is finished (win or lose) or no started (no credits insert)
 function isGameFinished() {
-    return byte(0x003552) == 0 || byte(0x003552) == 0x72
+    return getGameStatus() == 0 || getGameStatus() == 0x72
 }
 
 function isInSelectionScreen() {
-    return (byte(0x003552) == 0x10 || byte(0x003552) == 0x52) &&
+    return (getGameStatus() == 0x10 || getGameStatus() == 0x52) &&
         (!isRallySanRemoSelected() && !isRallyMonteCarloSelected() && !isRallyAcropolisSelected() && !isRally1000LakesSelected())
 }
 
@@ -173,13 +180,24 @@ function convertChronoFrameToTime(previousFrame){
     }
 }
 
+// Chrono stage status (0 inactive, 1 active)
+function getChronoStatus() => byte(0x0001b2)
+
 
 // Custom functions
-function stageCleared() {
+/*
+function isStageCleared() {
     return repeated(400, getChronoTime() > prev(getChronoTime())) && 
            getChronoTime() == 0 &&
            never(repeated(10, getChronoTime() > 600))
 }
+*/
+
+function isStageCleared() {
+    return getStatusStage() == 1 && prev(getStatusStage()) == 2 && 
+           getChronoTime() == 0 && getChronoFrame() == 0 && getChronoStatus() == 0
+}
+
 
 function getCentisecStageTime(){
     return (prev(getChronoTime()) * 10) + convertChronoFrameToTime(previousFrame = true)
@@ -209,18 +227,18 @@ rallies = {
         "leaderboard": {
             "id": 127421,
             "title": "Rally San Remo",
-            "description": "Leaderboard Rally San Remo [1p mode | Only 1 credit]"
+            "description": "Leaderboard Rally San Remo with only 1 credit in one player mode"
         },
         "completed": {
             "id": 507130,
             "title": "Arrivederci San Remo",
-            "description": "Complete Rally San Remo, Italy [1p mode | Only 1 credit]",
+            "description": "Complete Rally San Remo, Italy, with only 1 credit in one player mode",
             "points": 5
         },
         "victory": {
             "id": 506658,
             "title": "Gladiator",
-            "description": "Win Rally San Remo, Italy [1p mode | Only 1 credit]",
+            "description": "Win Rally San Remo, Italy, with only 1 credit in one player mode",
             "points": 10
         },
         "stages": {
@@ -255,18 +273,18 @@ rallies = {
         "leaderboard": {
             "id": 127422,
             "title": "Rally Monte-Carlo",
-            "description": "Leaderboard Rally Monte-Carlo [1p mode | Only 1 credit]"
+            "description": "Leaderboard Rally Monte-Carlo with only 1 credit in one player mode"
         },
         "completed": {
             "id": 507136,
-            "title": "A walk along the Cote dAzur",
-            "description": "Complete Rally MonteCarlo, France [1p mode | Only 1 credit]",
+            "title": "A Walk Along the Cote D'Azur",
+            "description": "Complete Rally MonteCarlo, Monaco, with only 1 credit in one player mode",
             "points": 5
         },
         "victory": {
             "id": 507059,
             "title": "Casino Royale",
-            "description": "Win Rally MonteCarlo, France [1p mode | Only 1 credit]",
+            "description": "Win Rally MonteCarlo, Monaco, with only 1 credit in one player mode",
             "points": 10
         },
         "stages": {
@@ -289,7 +307,7 @@ rallies = {
             2: {
                 "idAchievement": 507062,    
                 "idLeaderboard": 127100, 
-                "name" : "Col de Turini",
+                "name" : "Col De Turini",
                 "stage": 3,
                 "winningTitle": "Sebastian Loeb",
                 "winningPoints" : 5,
@@ -301,18 +319,18 @@ rallies = {
         "leaderboard": {
             "id": 127423,
             "title": "Rally Acropolis",
-            "description": "Leaderboard Rally Acropolis [1p mode | Only 1 credit]"
+            "description": "Leaderboard Rally Acropolis with only 1 credit in one player mode"
         },
         "completed": {
             "id": 507131,
             "title": "Olympic Games",
-            "description": "Complete Rally Acropolis, Greece [1p mode | Only 1 credit]",
+            "description": "Complete Rally Acropolis, Greece, with only 1 credit in one player mode",
             "points": 5
         },
         "victory": {
             "id": 507132,
             "title": "Greek God",
-            "description": "Win Rally Acropolis, Greece [1p mode | Only 1 credit]",
+            "description": "Win Rally Acropolis, Greece, with only 1 credit in one player mode",
             "points": 10
         },
         "stages": {
@@ -347,18 +365,18 @@ rallies = {
         "leaderboard": {
             "id": 127424,
             "title": "Rally of the 1000 Lakes",
-            "description": "Leaderboard Rally of the 1000 Lakes [1p mode | Only 1 credit]"
+            "description": "Leaderboard Rally of the 1000 Lakes with only 1 credit in one player mode"
         },
         "completed": {
             "id": 507137,
-            "title": "Let it go, Let it go...",
-            "description": "Complete Rally of the 1000 Lakes, Finland [1p mode | Only 1 credit]",
+            "title": "Let It Go, Let It Go...",
+            "description": "Complete Rally of the 1000 Lakes, Finland, with only 1 credit in one player mode",
             "points": 5
         },
         "victory": {
             "id": 507133,
             "title": "King in the North",
-            "description": "Win Rally 1000 Lakes, Finland [1p mode | Only 1 credit]",
+            "description": "Win Rally 1000 Lakes, Finland, with only 1 credit in one player mode",
             "points": 10
         },
         "stages": {
@@ -436,16 +454,16 @@ function setAchievementCompleteRally(rallyId){
               getTotalRalliesCompleted() > 0
               
     if(rallyId == 0){
-        trigger = trigger && isRallySanRemoSelected() && getRallySanRemoPoints() != 0xFF
+        trigger = trigger && isRallySanRemoSelected() && getRallySanRemoPoints() != 0xFF && prev(getRallySanRemoPoints()) == 0xFF 
     }
     else if (rallyId == 1){
-        trigger = trigger && isRallyMonteCarloSelected() && getRallyMonteCarloPoints() != 0xFF
+        trigger = trigger && isRallyMonteCarloSelected() && getRallyMonteCarloPoints() != 0xFF && prev(getRallyMonteCarloPoints()) == 0xFF 
     }
     else if (rallyId == 2){
-        trigger = trigger && isRallyAcropolisSelected() && getRallyAcropolisPoints() != 0xFF
+        trigger = trigger && isRallyAcropolisSelected() && getRallyAcropolisPoints() != 0xFF && prev(getRallyAcropolisPoints()) == 0xFF 
     }
     else if (rallyId == 3){
-        trigger = trigger && isRally1000LakesSelected() && getRally1000LakesPoints() != 0xFF
+        trigger = trigger && isRally1000LakesSelected() && getRally1000LakesPoints() != 0xFF && prev(getRally1000LakesPoints()) == 0xFF 
     }
     else {}
     
@@ -464,23 +482,23 @@ function setAchievementVictoryRally(rallyId){
               getTotalRalliesCompleted() > 0
               
     if(rallyId == 0){
-        trigger = trigger && isRallySanRemoSelected() && getRallySanRemoPoints() == 20
+        trigger = trigger && isRallySanRemoSelected() && getRallySanRemoPoints() == 20 && prev(getRallySanRemoPoints()) == 0xFF 
     }
     else if (rallyId == 1){
-        trigger = trigger && isRallyMonteCarloSelected() && getRallyMonteCarloPoints() == 20
+        trigger = trigger && isRallyMonteCarloSelected() && getRallyMonteCarloPoints() == 20 && prev(getRallyMonteCarloPoints()) == 0xFF 
     }
     else if (rallyId == 2){
-        trigger = trigger && isRallyAcropolisSelected() && getRallyAcropolisPoints() == 20
+        trigger = trigger && isRallyAcropolisSelected() && getRallyAcropolisPoints() == 20 && prev(getRallyAcropolisPoints()) == 0xFF 
     }
     else if (rallyId == 3){
-        trigger = trigger && isRally1000LakesSelected() && getRally1000LakesPoints() == 20
+        trigger = trigger && isRally1000LakesSelected() && getRally1000LakesPoints() == 20 && prev(getRally1000LakesPoints()) == 0xFF 
     }
     else {}
     
     achievement(id = rallies[rallyId]["victory"]["id"], 
                 title = rallies[rallyId]["victory"]["title"],
                 points = rallies[rallyId]["victory"]["points"],
-                type= "missable",
+                type= "progression",
                 description = rallies[rallyId]["victory"]["description"],
                 trigger = trigger)
 }
@@ -491,14 +509,14 @@ function setAchievementVictoryStage(rallyId, stage){
     id = rallies[rallyId]["stages"][stage]["idAchievement"]
     title = rallies[rallyId]["stages"][stage]["winningTitle"]
     points = rallies[rallyId]["stages"][stage]["winningPoints"]
-    type = "missable"
-    description = format("Win {0} Stage - {1} Stage {2} [1p mode]", 
+    type = "progression"
+    description = format("Win {0} Stage - {1} Stage {2} in one player mode", 
             rallies[rallyId]["stages"][stage]["name"], 
             rallies[rallyId]["name"],
             rallies[rallyId]["stages"][stage]["stage"])
     trigger = isOnePlayerMode() && isNormalOrHigherDifficulty() &&
                   getCurrentStage() == stage &&
-                  stageCleared() &&
+                  isStageCleared() &&
                   getStagePosition() == 0
                   
     if(rallyId == 0){
@@ -519,13 +537,16 @@ function setAchievementVictoryStage(rallyId, stage){
 }
 
 // Achievement function for game completed
-function setGameCompletedAchievement(id, title, points, type, description, isPositionRequired, positionReq, extraCredits){
-    trigger = isOnePlayerMode() && isNormalOrHigherDifficulty() && getExtraCreditsUsed() == extraCredits &&
+function setGameCompletedAchievement(id, title, points, type, description, isPositionRequired, positionReq, isExtraCreditsLimited, extraCredits){
+    trigger = isOnePlayerMode() && isNormalOrHigherDifficulty() && 
               isRallySanRemoSelected() && isRallyMonteCarloSelected() && isRallyAcropolisSelected() && isRally1000LakesSelected() &&
               getRallySanRemoPoints() != 0xFF && getRallyMonteCarloPoints() != 0xFF && getRallyAcropolisPoints() != 0xFF && getRally1000LakesPoints() != 0xFF &&
               getWorldChampionshipPoints() != 0xFF &&
-              getTotalRalliesCompleted() == 10
-              
+              getTotalRalliesCompleted() == 10 && prev(getTotalRalliesCompleted() < 10)
+     
+     if(isExtraCreditsLimited){
+         trigger = trigger && getExtraCreditsUsed() == extraCredits
+     }         
      if(isPositionRequired){
          trigger = trigger && getWorldChampionshipPosition() <= positionReq
      }
@@ -540,26 +561,31 @@ function setGameCompletedAchievement(id, title, points, type, description, isPos
 function setRallyLeaderboard(rallyId){
     start = isOnePlayerMode() && isNormalOrHigherDifficulty() && getExtraCreditsUsed() == 0 &&
               getCurrentStage() == 0 &&
-              getChronoTime() == 2 && prev(getChronoTime()) == 1 &&
-              getChronoFrame() == 0 && prev(getChronoFrame()) == 5
+              getChronoStatus() == 1 && prev(getChronoStatus()) == 0
               
     cancel = getExtraCreditsUsed() > 0 || isGameFinished()
+
+    submit = repeated(3, getStatusStage() == 2) && getCurrentStage() == 2 && (prev(getCentisecRallyTime()) < getCentisecRallyTime())
     
     if(rallyId == 0){
         start = start && isRallySanRemoSelected() && isPlayingRallySanRemo()
         cancel = cancel || !isPlayingRallySanRemo()
+        submit = submit && never(!isPlayingRallySanRemo())
     }
     else if (rallyId == 1){
         start = start && isRallyMonteCarloSelected() && isPlayingRallyMonteCarlo()
         cancel = cancel || !isPlayingRallyMonteCarlo()
+        submit = submit && never(!isPlayingRallyMonteCarlo())
     }
     else if (rallyId == 2){
         start = start && isRallyAcropolisSelected() && isPlayingRallyAcropolis()
         cancel = cancel || !isPlayingRallyAcropolis()
+        submit = submit && never(!isPlayingRallyAcropolis())
     }
     else if (rallyId == 3){
         start = start && isRally1000LakesSelected() && isPlayingRally1000Lakes()
         cancel = cancel || !isPlayingRally1000Lakes()
+        submit = submit && never(!isPlayingRally1000Lakes())
     }
     else {}
     
@@ -568,7 +594,7 @@ function setRallyLeaderboard(rallyId){
                 description = rallies[rallyId]["leaderboard"]["description"],
                 start = start,
                 cancel = cancel,
-                submit = getCurrentStage() == 2 && (prev(getCentisecRallyTime()) < getCentisecRallyTime()),
+                submit = submit,
                 value  = getCentisecRallyTime(),
                 format = "MILLISECS", 
                 lower_is_better = true                
@@ -582,24 +608,17 @@ function setStageLeaderboard(rallyId, stage){
             rallies[rallyId]["name"],
             rallies[rallyId]["stages"][stage]["stage"],             
             rallies[rallyId]["stages"][stage]["name"])
-    description = format("Leaderboard {0} Stage {1} - {2} [1p mode]", 
+    description = format("Leaderboard {0} Stage {1} - {2} in one player mode", 
             rallies[rallyId]["name"],
             rallies[rallyId]["stages"][stage]["stage"],             
             rallies[rallyId]["stages"][stage]["name"])
+
     start  = isOnePlayerMode() && isNormalOrHigherDifficulty() &&
                   getCurrentStage() == stage &&
-                  getChronoTime() == 5 && prev(getChronoTime()) == 4 &&
-                  repeated(4, getChronoTime() > prev(getChronoTime())) &&
-                  repeated(20, getChronoFrame() > prev(getChronoFrame())) &&
-                  never(getChronoTime() == 0xFFFF)
+                  getChronoStatus() == 1 && prev(getChronoStatus()) == 0
                   
-    cancel = getChronoTime() == 0xFFFF && prev(getChronoTime() == 600) // When time exceeded value goes from 600 to 0xFFFF
-    submit = repeated(400, getChronoTime() > prev(getChronoTime())) && 
-            getChronoTime() == 0 &&
-            getChronoFrame() == 0 &&
-            prev(getChronoTime()) >= 450 && // To prevent errors
-            getScorePoints() > prior(getScorePoints()) + 10 && // During the Chrono the points only increase max 9 (according to the current speed) in a frame, when finish the stage increase a lot more
-            never(getChronoTime() == 0xFFFF)
+    cancel = getChronoTime() == 0xFFFF && prev(getChronoTime() == 600) // When time exceeded value goes from 600 to 0xFFFF // TODO: Rethink if change this behaviour
+    submit = isStageCleared()
     value  = getCentisecStageTime()
     
     
@@ -633,10 +652,10 @@ function setStageLeaderboard(rallyId, stage){
 // Win any stage
 achievement(
     id = 507129,
-    title = "Fast and Furious", points = 1, type="missable",
-    description = "Win a rally stage [1p mode]",
+    title = "Fast and Furious", points = 1, type="progression",
+    description = "Win a rally stage in one player mode",
     trigger = isOnePlayerMode() && isNormalOrHigherDifficulty() &&
-              stageCleared() &&
+              isStageCleared() &&
               getStagePosition() == 0
 )
 
@@ -666,19 +685,19 @@ for raId in rallies {
 // Achievements - Game Completed
 // -----------------------------
 setGameCompletedAchievement(id = 507134,
-    title = "The job is done", points = 25, type="win_condition",
-    description = "Complete the game [1p mode | Only 1 credit]",
-    isPositionRequired = false, positionReq = 0, extraCredits = 0)
+    title = "The Job Is Done", points = 25, type="win_condition",
+    description = "Beat the game in one player mode",
+    isPositionRequired = false, positionReq = 0, isExtraCreditsLimited = false, extraCredits = 0)
     
 setGameCompletedAchievement(id = 507138,
-    title = "Touching the glory", points = 50, type="missable",
-    description = "Finish in third position, or better, in the World Championship [1p mode | Only 1 credit]",
-    isPositionRequired = true, positionReq = 2, extraCredits = 0)
+    title = "Touching the Glory", points = 50, type="progression",
+    description = "Finish in third position, or better, in the World Championship with only 1 credit in one player mode",
+    isPositionRequired = true, positionReq = 2, isExtraCreditsLimited = true, extraCredits = 0)
     
 setGameCompletedAchievement(id = 507135,
-    title = "Carlos Sainz", points = 50, type="missable",
-    description = "Win the World Championship [1p mode | Max 3 credits]",
-    isPositionRequired = true, positionReq = 0, extraCredits = 2)    
+    title = "Carlos Sainz", points = 50, type="progression",
+    description = "Win the World Championship with a maximum of 3 credits in one player mode",
+    isPositionRequired = true, positionReq = 0, isExtraCreditsLimited = true, extraCredits = 2)    
     
 
 // Leaderboards - Stages
@@ -701,19 +720,16 @@ for raId in rallies{
 
 // Leaderboard Score Points
 // ------------------------
+// TODO: Ver si despues de entrar a meta se aumentan puntos (yo creo que no), si no se aumentan añadir un OR al submit para cuando acabas todos los rallies
 leaderboard(
         id = 127131, 
         title = "Total Score Points",
-        description = "Total Score Points [1p mode | Only 1 credit]",
+        description = "Total Score Points with only 1 credit in one player mode",
         start  = isOnePlayerMode() && isNormalOrHigherDifficulty() && getExtraCreditsUsed() == 0 &&
                 (isRallySanRemoSelected() || isRallyMonteCarloSelected() || isRallyAcropolisSelected() || isRally1000LakesSelected()) &&
-                !isGameFinished() && getScorePoints() < 100 && // If the leaderboard starts after 0,5 seconds there are some points collected (5 points)
-                getChronoTime() == 5 && prev(getChronoTime()) == 4 &&
-                repeated(4, getChronoTime() > prev(getChronoTime())) &&
-                repeated(20, getChronoFrame() > prev(getChronoFrame())) &&
-                never(getChronoTime() == 0xFFFF),
+                !isGameFinished() && getChronoStatus() == 1 && prev(getChronoStatus()) == 0,
         cancel = getExtraCreditsUsed() > 0,
-        submit = isGameFinished(),
+        submit = isGameFinished() && prev(getGameStatus())!= 0 && prev(getGameStatus())!= 0x72,
         value  = getScorePoints(),
         format = "POINTS", lower_is_better = false
     )
@@ -775,4 +791,3 @@ rich_presence_display("Playing {0}, {1}, 🚩:{2}, 🔁:{3}, 💰:{4}",
                         rich_presence_value("Continues", getExtraCreditsUsed()),
                         rich_presence_value("Points", getScorePoints()) 
 )
-
